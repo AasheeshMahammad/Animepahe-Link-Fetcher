@@ -325,6 +325,7 @@ def get_index(sel,stop=0):
 def link_fetch(a,ch=1):
     driver=set_driver(hdl=set_hdl[1],img=set_img[1],ch=ch)
     driver.get(a)
+    #driver.find_element_by_tag_name("html").send_keys(Keys.END) --scroll down--
     if ch==1:
         if(print_hold==1):
             print(colored(". ",t_color),end="",flush=True)
@@ -333,14 +334,16 @@ def link_fetch(a,ch=1):
     #driver.execute_script(f'window.open("{a}","_blank");')
     #driver.close()
     #driver.switch_to.window(driver.window_handles[1])
-    down=WebDriverWait(driver,15).until(Ec.presence_of_element_located((By.ID, 'downloadMenu')))
+    #driver.execute_script("scroll(0, 250);")
+    down=driver.find_elements_by_xpath("//div[@class='col-12 col-sm-3']")
+    down[-1].click()
     while False:
         try:
-            down.click()
+            driver.execute_script("arguments[0].click();",down[-1])
             break;
         except:
             pass
-    time.sleep(.4)
+    time.sleep(1)
     try:
         driver.switch_to.window(driver.window_handles[1])
         driver.close()
@@ -348,27 +351,28 @@ def link_fetch(a,ch=1):
     except:
         #time.sleep(1)
         pass
-    epm=driver.find_element_by_xpath('//button[@id="episodeMenu"]')
+    epm=driver.find_element_by_tag_name('h1')
     #print("clicked")
     epm=str(epm.text)
-    epm=int(epm.split(" ")[-1])
+    epm=epm.split("-")[-1].replace("Online" ,"").strip()
+    epm=int(epm)
     #print(".",end=" ",flush=True)
     sel=[]
     i=0
     while(True):
         i=i+1
         sel = driver.find_element_by_xpath('//div[@id="pickDownload"]')
-        sel = sel.find_elements_by_xpath('.//a[@class="dropdown-item"]')# //div[@id="pickDownload"]#//a[@class="dropdown-item"]
+        sel = sel.find_elements_by_tag_name('a')# //div[@id="pickDownload"]#//a[@class="dropdown-item"]
+        if(len(sel)!=0 or i==500):
+            break
         try:
-            driver.execute_script("arguments[0].click();", down)
+            down[-1].click()
             driver.switch_to.window(driver.window_handles[1])
             driver.close()
             driver.switch_to.window(driver.window_handles[0])
         except:
             #time.sleep(1)
             pass
-        if(len(sel)!=0 or i==500):
-            break
     #print(len(sel),flush=True)
     index,size=get_index(sel)
     if index==None:
@@ -606,24 +610,23 @@ def find_count(driver):
 
 
 def find_title(title,driver):
+    driver.execute_script("document.body.style.zoom = '150%';")
     driver.get('https://animepahe.com/')
     #driver.implicitly_wait(2)
-    search = driver.find_element_by_name('q')
-    search.send_keys(title)
+    query=f"document.getElementsByName('q')[0].value='{title}'"
+    search = driver.find_element_by_xpath("//input[@class='input-search']")
+    search.clear()
+    driver.execute_script(query)
+    search.send_keys(" ")
     # get_screenshot(driver)
     # time.sleep(2)
-    # get_screenshot(driver)
+    #get_screenshot(driver)
     try:
         temp = WebDriverWait(driver, 10).until(Ec.presence_of_element_located((By.CLASS_NAME, "result-status")))
         return 1
     except:
         driver.quit()
         return 0
-
-
-def click(ind,driver):
-    select = driver.find_elements_by_class_name("result-title")
-    select[ind].click()
 
 
 def cal(a,n):
@@ -926,7 +929,7 @@ def main_block(title="",cho=0):
                     driver.quit()
                     return choices,find
                 choose = choose - 1
-                click(choose,driver)
+                driver.find_elements_by_class_name("result-title")[choose].click()
                 get(driver,max_threads)
                 if len(choices) > 0:
                     return choices,find
