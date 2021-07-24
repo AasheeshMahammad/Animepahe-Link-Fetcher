@@ -60,7 +60,7 @@ def set_driver(**kwargs):
     img=kwargs.get("img",0)
     ch=kwargs.get("ch",0)
     a=1
-    chrome_driver='chromedriver91.exe'
+    chrome_driver='chromedriver.exe'
     if check_argv(["-e","-E","edge","Edge"])==1:
         a=2
     if a==1:
@@ -78,7 +78,6 @@ def set_driver(**kwargs):
         options.add_argument("--disable-notifications")
         options.add_argument("--disable-infobars")
         options.add_argument("test-type")
-        #options.add_argument("user-data-dir=D:/New Folder/Data/Chrome_Test_Profile")
         #options.add_experimental_option("prefs",{"profile.default_content_setting_values.notifications" : 2})
         if set_img[3]==1 and ch==1:
             load = DesiredCapabilities().CHROME
@@ -158,7 +157,7 @@ def speak(text):
 
 def download_check():
     dl_wait = True
-    path_="C:\\Users\\Mogha\\Downloads\\"
+    path_=""
     while dl_wait:
         time.sleep(1)
         dl_wait = False
@@ -433,64 +432,12 @@ def link_fetch(a,ch=1):
                     set_img[3]=1
                 else:
                     set_img[3]=0
-            # file = open("D:/New folder/Links/Links/" + "Temp" + '.txt', 'a+',encoding="utf-8")
-            # file.write(li + '\r')
-            # file.close()
-            # time.sleep(1)
 
 
 def check_diff(l1, l2):
     l_diff = [i for i in l1 + l2 if i not in l1 or i not in l2]
     return l_diff
 
-
-def selectp_1(a,c):
-    time.sleep(.05)
-    driver=set_driver(hdl=set_hdl[1],img=set_img[1])
-    driver.get(a)
-    time.sleep(.6)
-    down = driver.find_element_by_id('downloadMenu')
-    down.click()
-    time.sleep(1)
-    driver.switch_to.window(driver.window_handles[1])
-    driver.close()
-    driver.switch_to.window(driver.window_handles[0])
-    sel = driver.find_element_by_xpath('//div[@id="pickDownload"]')
-    sel = sel.find_elements_by_xpath('.//a[@class="dropdown-item"]')  # //div[@id="pickDownload"]#//a[@class="dropdown-item"]
-    ch = 1
-    val=0;cur=""
-    global index
-    if c == 0:
-        for i in sel:
-            ##sys.stdout.flush()
-            print(str(ch) + "." + str(i.text),flush=True)
-            ch = ch + 1
-        index = int(input("Select :"))
-        if index < 1:
-            driver.quit()
-            quit()
-        elif index > len(sel) + 1:
-            index = len(sel)
-        index = index - 1
-    try:
-        time.sleep(.4)
-        sel[index].click()
-    except:
-        val=1
-        driver.quit()
-    time.sleep(.2)
-    driver.close()
-    if val==0:
-        cur=selectskip(driver,0)
-    if val==1:
-        invalid.append(int(0))
-    else:
-        if check(cur)==0:
-            invalid.append(int(0))
-        else:
-            li="1"+"-"+cur
-            links.append(li)
-            #time.sleep(1)
 
 
 def clean(cr=0):
@@ -505,57 +452,6 @@ def clean(cr=0):
     print(str(n)+" "+"Processess have been cleaned")
 
 
-def select_add_skip(c):
-    time.sleep(7)
-    driver.switch_to.window(driver.window_handles[1])
-    try:
-        add_skip = WebDriverWait(driver,7).until(Ec.presence_of_element_located((By.XPATH, '//a[@id="skip_bu2tton"]')))
-        add_skip.click()
-    except:
-        print("Try Again (Due To add)")
-        driver.quit()
-        quit()
-    driver.close()
-    driver.switch_to.window(driver.window_handles[1])
-    cur = driver.current_url
-    links.append(cur)
-    driver.close()
-
-
-def select(a, b, c):
-    time.sleep(.05)
-    b[a].send_keys(Keys.CONTROL, Keys.RETURN)
-    time.sleep(.15)
-    driver.switch_to.window(driver.window_handles[1])
-    time.sleep(.15)
-    down = driver.find_element_by_id('downloadMenu')
-    down.click()
-    time.sleep(.3)
-    driver.switch_to.window(driver.window_handles[2])
-    driver.close()
-    driver.switch_to.window(driver.window_handles[1])
-    sel = driver.find_element_by_xpath('//div[@id="pickDownload"]')
-    sel = sel.find_elements_by_xpath('.//a[@class="dropdown-item"]')  # //div[@id="pickDownload"]#//a[@class="dropdown-item"]
-    ch = 1
-    if c == 0:
-        for i in sel:
-            print(str(ch) + "." + str(i.text))
-            ch = ch + 1
-        global index
-        index = int(input("Select :"))
-        if index < 1 :
-            index=1
-        elif index > len(sel) +1:
-            index=len(sel)
-        index = index - 1
-    try:
-        sel[index].click()
-    except:
-        print("Try Again")
-        driver.quit()
-        quit()
-    driver.close()
-    select_add_skip(c)
 
 
 def click_ep(driver):
@@ -815,17 +711,15 @@ def get(driver,max_threads):
         while len(invalid) > 0:
             fix(ep_links,max_threads)
         links.sort(key=sor)
-        file = open("D:/New folder/Links/Links/" + str(find) + ".txt", 'w+',encoding="utf-8")
+        path=""
+        file = open(path + str(find) + ".txt", 'w+',encoding="utf-8")
         file.write(find + '\r\n')
         file.close()
-        file_path="\"D:\\New folder\\Links\\Links\\" + str(find) + '.txt\"'
-        file = open("D:/New folder/Links/Links/" + str(find) + '.txt', 'a+',encoding="utf-8")
+        file_path=path + str(find) + '.txt\"'
+        file = open(path + str(find) + '.txt', 'a+',encoding="utf-8")
         for i in links:
             file.write(i + '\r\n')
         file.close()
-        os.system("copy /Y "+file_path+" \"E:\\New folder\\Links\\Links/\" >NUL")
-        # file = open("D:/New folder/Links/Links/" + "Temp" + '.txt', 'w+',encoding="utf-8")
-        # file.close()
         if set_img[2]==1:
            speak("Done")
         #clean()
@@ -841,33 +735,6 @@ def get(driver,max_threads):
             #os.system("cls")
             os.system(f"python DNC.py name=\"{str(find)}.txt\"")
         #print("Data Need to Download :",down_size)
-    '''else:
-        driver.quit()'''
-
-    """hold = 0
-    print("Title :", find)
-    print("No. of Episodes :", ep_count)
-    global time_taken
-    time_taken = time.time() - start
-    val = int(input("Continue :"))
-    if (val == 1):
-        file = open("D:/New folder/Links/"+ str(find) +".txt", 'w+', encoding="utf-8")
-        file.write(find + '\r\n')
-        file.close()
-        for i in range(0, ep_count):
-            file = open("D:/New folder/Links/"+str(find) + '.txt', 'a+', encoding="utf-8")
-            start = time.time()
-            select(hold, ep_li, i)
-            driver.switch_to.window(driver.window_handles[0])
-            temp = str(hold + 1) + '-' + str(links[hold])
-            file.write(temp + '\r\n')
-            file.close()
-            hold = hold + 1
-            time_taken = time_taken + time.time() - start
-            print(i + 1, " - ", time.time() - start, "\n")
-        #tmp = "attrib +a +h "
-        #tmp = str(str(tmp) +'"'+ str(find)+ ".txt"+'"')
-        #os.system(tmp)"""
     #driver.quit()
 
 
