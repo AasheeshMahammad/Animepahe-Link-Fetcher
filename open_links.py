@@ -5,8 +5,9 @@ import sys,wmi
 
 
 def add_links(files,links,arr):
+    path=''
     for i in arr:
-        d_file=open('D:/New folder/Links/Links/'+str(files[i]),'r')
+        d_file=open(path+str(files[i]),'r')
         for line in d_file:
             hi = line.strip().split("-")[-1].strip()
             if "https" in hi:
@@ -15,7 +16,8 @@ def add_links(files,links,arr):
 
 n = len(sys.argv)-1
 start=time.time()
-listOfFiles = os.listdir('D:/New folder/Links/Links/')
+path
+listOfFiles = os.listdir(path)
 pattern = "*.txt"
 files=[]
 i=1
@@ -72,7 +74,6 @@ if True:
             break
     if proc_check==1:
         chrome_path = 'C:/Program Files/Google/Chrome/Application/chrome.exe %s --incognito'
-        #chrome_path = 'C:/Program Files/Google/Chrome/Application/chrome.exe %s --incognito -remote-debugging-port=3333 --incognito --user-data-dir="E:/New Folder/Link/Data/Chrome_Test_Profile"'
         if len_l==0:
             for i in range(0,len(links)):
                 if i==0:
@@ -81,7 +82,6 @@ if True:
                         input("Waiting...")
                 else:
                     web.get(chrome_path).open_new_tab(links[i])
-                    #time.sleep(.5)#chrome.exe -remote-debugging-port=3333 --incognito --user-data-dir="E:\New Folder\Link\Data\Chrome_Test_Profile"
         else:
             temp_num=len(links)
             len_l=0
