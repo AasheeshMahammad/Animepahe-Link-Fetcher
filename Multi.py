@@ -113,16 +113,18 @@ def get_arg(arg):
     return 0
 
 def set_ar():
+    for i in range(1,len(sys.argv)):
+        sys.argv[i]=sys.argv[i].lower()
     if check_argv(["do"])==1:
         sys.argv.append("dec")
         sys.argv.append("no_et")
-    if check_argv(["-h","-H","head","Head"])==1:
+    if check_argv(["-h","head"])==1:
         set_hdl[0]=set_hdl[1]=0
     if "dec" in sys.argv:
         set_img[3]=1
     if check_argv(["img","-i","-I"])==1:
         set_img[0]=set_img[1]=1
-    if check_argv(["-s","-S","speak","Speak"])==1:
+    if check_argv(["-s","speak"])==1:
         set_img[2]=1
     colors=["grey","red","green","yellow","blue","magenta","cyan","white"]
     if get_arg('color') in colors:
@@ -136,7 +138,7 @@ def set_ar():
             quit()
         clean()
         quit()
-    if check_argv(["help","Help","--help","--Help"])==1:
+    if check_argv(["help","--help",'-h'])==1:
         print("\nclean :To clean Left out Drivers","Speak :To Notify With Voice","img :To Stop Loading Of Images",sep="\n")
         print("Edge :To Use Edge Instead Of Chrome",sep="\n")
         quit()
@@ -555,34 +557,8 @@ def fix_name(name):
     return name
 
 
-def check_count(a=0):
-    file = open("D:/New folder/Links/Links/" + "Temp" + '.txt', 'r',encoding="utf-8")
-    Content = file.read()
-    lin = Content.split("\n")
-    file.close()
-    tmp_list=[]
-    if a==1:
-        for i in lin:
-            if "-" in i:
-                tmp_list.append(i)
-        tmp_list.sort(key=sor)
-        return tmp_list
-    for i in lin:
-        if "-" in i:
-            tmp_list.append(int(i.split("-")[0])-1)
-    tmp_list.sort()
-    return tmp_list
-
-
 def fix(ep_links,max_threads):
     invalid.sort()
-    '''if len(ep_links)!=len(check_count()):
-            tmp_links=check_count()
-            tmp_num=[ i for i in range(0,len(ep_links))]
-            tmp_invalid=check_diff(tmp_num,tmp_links)
-            for i in tmp_invalid:
-                if i not in invalid:
-                    invalid.append(i)'''
     if len(invalid)==1:
         print(colored(f"{invalid} Link Is Broken, Trying To Fix...",'red'),end='\n')
     else:
@@ -694,26 +670,6 @@ def get(driver,max_threads):
                     print(colored(".",t_color),flush=True)
                 else:
                     print(colored(f"{len(links)} Out of {ep_max_count} Done...",t_color),flush=True)
-        '''else:
-            dict_threads={}
-            for i in range(1,9):
-                dict_threads[i]=cal(ep_count+1,i)
-            dict_threads=sorted(dict_threads.items(), key =lambda x:(x[1], x[0]))
-            for i in range(0,2*ep_count+1):
-                if i==2*ep_count:
-                    print(colored(".",t_color))
-                else:
-                    print(colored(".",t_color),end=" ")
-            if __name__ == '__main__':
-                ThreadPool(dict_threads[0][0]).map(link_fetch,ep_links)
-            print(colored(".",t_color),flush=True)'''
-        '''if ep_count!=len(check_count()):
-            tmp_links=check_count()
-            tmp_num=[ i+1 for i in range(0,ep_count)]
-            tmp_invalid=check_diff(tmp_num,tmp_links)
-            for i in tmp_invalid:
-                if i not in invalid:
-                    invalid.append(i)'''
         while len(invalid) > 0:
             fix(ep_links,max_threads)
         links.sort(key=sor)
@@ -736,10 +692,10 @@ def get(driver,max_threads):
         '''
         invalid.clear()
         links.clear()
-        if check_argv(["Download","download"])==1:
+        if check_argv(["download"])==1:
             #time.sleep(2)
             #os.system("cls")
-            os.system(f"python DNC.py name=\"{str(find)}.txt\"")
+            os.system(f"python open_links.py name=\"{str(find)}.txt\"")
         #print("Data Need to Download :",down_size)
     #driver.quit()
 
