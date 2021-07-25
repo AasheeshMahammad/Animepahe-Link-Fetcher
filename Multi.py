@@ -3,6 +3,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as Ec
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from msedge.selenium_tools import EdgeOptions
@@ -336,6 +337,10 @@ def link_fetch(a,ch=1):
     #driver.execute_script("scroll(0, 250);")
     down=driver.find_elements_by_xpath("//div[@class='col-12 col-sm-3']")
     down[-1].click()
+     down = driver.find_element_by_id('downloadMenu')
+    actions= ActionChains(driver)
+    actions.click(on_element=down)
+    actions.perform()
     while False:
         try:
             driver.execute_script("arguments[0].click();",down[-1])
@@ -347,6 +352,7 @@ def link_fetch(a,ch=1):
         driver.switch_to.window(driver.window_handles[1])
         driver.close()
         driver.switch_to.window(driver.window_handles[0])
+        actions.perform()
     except:
         #time.sleep(1)
         pass
@@ -365,7 +371,7 @@ def link_fetch(a,ch=1):
         if(len(sel)!=0 or i==500):
             break
         try:
-            down[-1].click()
+            actions.perform()
             driver.switch_to.window(driver.window_handles[1])
             driver.close()
             driver.switch_to.window(driver.window_handles[0])
