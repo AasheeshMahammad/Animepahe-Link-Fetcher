@@ -339,7 +339,7 @@ def link_fetch(a,ch=1):
     #driver.execute_script("scroll(0, 250);")
     down=driver.find_elements_by_xpath("//div[@class='col-12 col-sm-3']")
     down[-1].click()
-     down = driver.find_element_by_id('downloadMenu')
+    down = driver.find_element_by_id('downloadMenu')
     actions= ActionChains(driver)
     actions.click(on_element=down)
     actions.perform()
