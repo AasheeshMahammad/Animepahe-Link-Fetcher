@@ -21,7 +21,7 @@ invalid=[]
 
 global set_attr
 set_attr={"title_page_image_disable":True,"fetch_page_image_disable":True,"speak":False,"title_headless":True,
-          "fetch_headless":True,"term_color":"green","max_threads":5,"english":False}
+          "fetch_headless":True,"term_color":"green","max_threads":9,"english":False}
 
 
 def set_driver(**kwargs):
