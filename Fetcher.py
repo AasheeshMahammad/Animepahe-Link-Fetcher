@@ -47,7 +47,6 @@ def set_driver(**kwargs):
         options.add_argument("--disable-infobars")
         options.add_argument("--disable-gpu") #--test this--------------------------------------------------
         options.add_argument("test-type")
-        #options.add_argument("user-data-dir=D:/New Folder/Data/Chrome_Test_Profile")
         #options.add_experimental_option("prefs",{"profile.default_content_setting_values.notifications" : 2})
         load = DesiredCapabilities().CHROME
         #load["pageLoadStrategy"] = "normal"  #  complete
