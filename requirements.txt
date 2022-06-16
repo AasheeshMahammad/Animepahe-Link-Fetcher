@@ -2,3 +2,4 @@ selenium
 pyttsx3
 psutil
 termcolor
+bs4
