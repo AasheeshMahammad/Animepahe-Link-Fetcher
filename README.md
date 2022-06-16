@@ -1,3 +1,3 @@
 To install requirements use:
 pip install -r requirements.txt.
-Get "Skip" module from Adfly-Skipper repository
+get chrome driver from https://chromedriver.chromium.org/downloads
