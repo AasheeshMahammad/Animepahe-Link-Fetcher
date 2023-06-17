@@ -12,6 +12,7 @@ from multiprocessing.pool import ThreadPool
 import os, time, sys, pyttsx3, psutil, random
 from termcolor import colored
 from pahe import decode
+import re
 
 global episode_links
 episode_links={}
@@ -21,14 +22,14 @@ invalid=[]
 
 global set_attr
 set_attr={"title_page_image_disable":True,"fetch_page_image_disable":True,"speak":False,"title_headless":True,
-          "fetch_headless":True,"term_color":"green","max_threads":9,"english":False}
+          "fetch_headless":True,"term_color":"green","max_threads":9,"english":False, "debug": False}
 
 
 def set_driver(**kwargs):
     headless=kwargs.get("headless",False)
     image_disable=kwargs.get("image_disable",False)
     use_chrome=True
-    chrome_driver='./chromedriver.exe'
+    chrome_driver='../drivers/chromedriver.exe'
     if check_argv(["-e","edge"]):
         use_chrome=False
     if use_chrome:
@@ -47,6 +48,7 @@ def set_driver(**kwargs):
         options.add_argument("--disable-infobars")
         options.add_argument("--disable-gpu") #--test this--------------------------------------------------
         options.add_argument("test-type")
+        #options.add_argument("user-data-dir=D:/New Folder/Data/Chrome_Test_Profile")
         #options.add_experimental_option("prefs",{"profile.default_content_setting_values.notifications" : 2})
         load = DesiredCapabilities().CHROME
         #load["pageLoadStrategy"] = "normal"  #  complete
@@ -61,13 +63,13 @@ def set_driver(**kwargs):
         if headless:
             edge_options.add_argument('headless')
         edge_options.add_argument('disable-gpu')
-        driver = Edge(executable_path="./msedgedriver.exe",options=edge_options)
+        driver = Edge(executable_path="../drivers/msedgedriver.exe",options=edge_options)
         return driver
 
 
 def check_argv(a):
     for i in a:
-        if i in sys.argv:
+        if i in set(sys.argv):
             return True
     return False
 
@@ -118,11 +120,11 @@ def set_ar():
             brow_kill=True
         clean(brow_kill)
         os._exit(1)
+    if check_argv(["debug"]):
+        set_attr["debug"] = True
     if check_argv(["help","--help"]):
-        print("\nclean :To clean left out Drivers","Speak :To notify with voice",sep="\n")
+        print("\nclean :To clean Left out Drivers","Speak :To Notify With Voice","img :To Stop Loading Of Images",sep="\n")
         print("Edge :To Use Edge Instead Of Chrome",sep="\n")
-        print("-h or head to diable headless chrome")
-        print("download argument to run the open_links file after getting links")
         os._exit(1)
 
 
@@ -140,6 +142,15 @@ def speak(text):
     engine.runAndWait()
     pyttsx3.speak(text)
 
+def download_check():
+    dl_wait = True
+    path_="C:\\Users\\Aasheesh\\Downloads\\"
+    while dl_wait:
+        time.sleep(1)
+        dl_wait = False
+        for fname in os.listdir(path_):
+            if fname.endswith('.crdownload'):
+                dl_wait = True
 
 def get_screenshot(driver):
     fn=''
@@ -147,83 +158,84 @@ def get_screenshot(driver):
         fn+=str(random.randint(10,99))
     driver.get_screenshot_as_file(f"{fn}.png")
 
-
-
-def get_index(sel,stop=0):
-    index = 0
-    if len(sel) > 1:
-        dict_in={};sel1=[];indices=[];jpc=1;count=1
-        if set_attr["english"]:
-            count=2
-        for i in range(0,len(sel)):
-            dict_in[i]=sel[i].text
-            sel1.append(sel[i].text)
-        rm_key=[]
-        #print(sel1)
-        for key in dict_in:
-            if "p eng (" in dict_in[key] or "eng" in dict_in[key]:
-                rm_key.append(key)
-        rm_key.sort(reverse=True)
-        tmp=sel1.copy();eng_array=[]
-        if len(rm_key)!=len(tmp):
-            for i in rm_key:
-                eng_array.append(dict_in[i])
-                tmp.remove(dict_in[i])
-        #print(dict_in)
-        if len(eng_array)==0:
-            count=1
-        for cn in range(0,count):
-            for i in range(len(tmp)):
-                hld=tmp[i].split("-")
-                for y in hld:
-                    if "(" in y and ")" in y:
-                        tmp[i]=y
-                    if "eng" in tmp[i]:
-                        tmp[i]=tmp[i].replace("eng","")
-                try:
-                    tmp[i]=int(tmp[i].split("p")[0].strip())
-                except ValueError:
-                    pass
-            tmp.sort(reverse=True)
-            index=-1
-            for i in sel1:
-                if (str(tmp[0]) in i and jpc==1) or ((str(tmp[0]) in i) and (str("p eng") in i) and(set_attr["english"] and jpc==0)):
-                   for key, value in dict_in.items():
-                       if i==value:
-                           index=key
-                           indices.append(key)
-                           if set_attr["english"]:
-                                if len(eng_array) > 0:
-                                    tmp=eng_array.copy()
-                                    jpc=0
-                                else:
-                                    tmp=[]
-                           break
-                if index!=-1:
-                    break
-        if set_attr["english"] and len(eng_array) > 0:
-            index=indices[1]
-        else:
-            index=indices[0]
-    elif len(sel)==1:
-        index=0
-    if (0> index  or index> len(sel)):
-        if(stop < 900):
-            temp=get_index(sel,stop+1)
-            if(temp[0]!=None):
-                index=temp[0]
-            else:
-                index=-1
-        else:
-            return None,None
-    if index!=None:
+def download_files():
+    temp=[]
+    for i in episode_links:
+        temp.append(i.split("-")[-1].strip())
+    driver=set_driver(headless=0,image_disable=set_attr["fetch_page_image_disable"])
+    for i in range(len(temp)):
+        driver.get(temp[i])
+        if i==0:
+            input("Waiting...")
+        down=WebDriverWait(driver,20).until(Ec.presence_of_element_located((By.TAG_NAME, 'button')))
+        down.click()
         try:
-            size=int(sel[index].text.split("-")[-1].split("(")[-1].split(")")[0].replace("MB",""))
-        except (ValueError):
-            size=0
-        #print(size)
-        return index,size
+            driver.switch_to.window(driver.window_handles[1])
+            driver.close()
+            driver.switch_to.window(driver.window_handles[0])
+        except:
+            #time.sleep(1)
+            pass
+    download_check()
+    driver.quit()
 
+def selectskip(driver):
+    time.sleep(5)
+    driver.switch_to.window(driver.window_handles[0])
+    #time.sleep(5)
+    cur=""
+    rt=0
+    try:
+        #driver.implicitly_wait(4)
+        #time.sleep(2)
+        #driver.implicitly_wait(2)
+        while True:
+            #driver.implicitly_wait(2)
+            add_skip = WebDriverWait(driver,20).until(Ec.presence_of_element_located((By.XPATH, "//a[@class = 'btn btn-secondary btn-block redirect']")))
+            #driver.implicitly_wait(1)
+            #time.sleep(1.5)
+            cur = add_skip.get_attribute('href')
+            rt=rt+1
+            if rt==750:
+                if is_valid_url(str(cur))==0:
+                    cur="None"
+                    driver.quit()
+                else:
+                    driver.quit()
+                break
+            if is_valid_url(cur)==1:
+                driver.quit()
+                #time.sleep(.5)
+                break
+            else:
+                continue
+    except Exception as e:
+        print(e)
+        cur="None"
+        driver.quit()
+    #time.sleep(.2)
+    #driver.quit()
+    print(colored(f"{len(episode_links)} Out of {ep_max_count} Done...",set_attr["term_color"]),end='\r',flush=True)
+    #time.sleep(.5)
+
+    return str(cur)
+
+def get_index(sel):
+    options = [(i, val.text.lower()) for i,val in enumerate(sel)]
+    japanese = [op for op in options if 'eng' not in op[1]]
+    english = [op for op in options if 'eng' in op[1]]
+    quality = lambda x: int(re.findall(r'(\d+)p', x[1])[0])
+    get_size = lambda x: int(re.findall(r'(\d+)mb', x[1])[0])
+    japanese.sort(key=quality, reverse=True)
+    english.sort(key=quality, reverse=True)
+    option = None
+    if len(japanese) > 0 or (len(english) == 0 and set_attr['english']):
+        option = japanese[0]
+    else:
+        option = english[0]
+    index = option[0]
+    size = get_size(option)
+    return index, size
 
 def link_fetch(link):
     driver=set_driver(headless=set_attr["fetch_headless"],image_disable=set_attr["fetch_page_image_disable"])
@@ -233,11 +245,6 @@ def link_fetch(link):
     episode_num=driver.find_element(By.XPATH,"//button[@id='episodeMenu']")
     #print("clicked")
     episode_num=str(episode_num.text)
-    episode_num=episode_num.split(" ")[-1].strip()
-    try:
-        episode_num=int(episode_num)
-    except (ValueError):
-        episode_num=float(episode_num)
     #driver.find_element_by_tag_name("html").send_keys(Keys.END) --scroll down--
     #time.sleep(.15)
     #driver.execute_script(f'window.open("{a}","_blank");')
@@ -275,11 +282,11 @@ def link_fetch(link):
         except Exception as e:
             pass
     index,size=get_index(sel)
-    if False:
+    if set_attr['debug']:
         temp=[i.text for i in sel]
         print(temp,index,sel)
     if index==None:
-        invalid.append(episode_num-1)
+        invalid.append(link)
         driver.quit()
         return
     d_cur=""
@@ -292,14 +299,14 @@ def link_fetch(link):
     except (IndexError,TypeError) as e:
         #print(episode_num-1,len(sel),index,flush=True)
         driver.quit()
-        invalid.append(episode_num-1)
+        invalid.append(link)
         #print(e)
         return
     if is_valid_url(d_cur)==1:
         episode_links[episode_num]=d_cur
         print(colored(f"{len(episode_links)} Out of {ep_max_count} Done...",set_attr["term_color"]),end='\r',flush=True)
     else:
-        invalid.append(episode_num-1)
+        invalid.append(link)
         return
     #time.sleep(.6)
 
@@ -322,7 +329,7 @@ def click_ep(driver):
         pg_len=driver.find_element(By.XPATH,'//a[@title="Go to the Last Page"]')
         pg_count=int(pg_len.get_attribute('data-page'))
         asc=driver.find_elements(By.TAG_NAME,'label')
-        if "asc" in asc[0].find_element_by_tag_name('input').get_attribute("id"):
+        if "asc" in asc[0].find_element(By.TAG_NAME,'input').get_attribute("id"):
             asc[0].click()
         else:
             asc[1].click()
@@ -335,6 +342,7 @@ def click_ep(driver):
                     time.sleep(.3)
                     for y in tmp:
                         ep.append(y.get_attribute('href'))
+                    print(colored(f"Page {i} of {pg_count}",set_attr["term_color"]),end='\r')
                     if(hold==1):
                         driver.find_element(By.XPATH,'//a[@class="page-link next-page"]').click()
                         hold=0
@@ -348,9 +356,11 @@ def click_ep(driver):
                     break
                 except:
                     pass
+        print(colored(f"Page {pg_count} of {pg_count}",set_attr["term_color"]))
         return list(set(ep))
     except:
         ep = driver.find_elements(By.CLASS_NAME,'play')
+        print(colored("Page 1 of 1",set_attr["term_color"]))
         for i in range(0,len(ep)):
             tmp=ep[i].get_attribute('href')
             ep[i]=tmp
@@ -413,11 +423,10 @@ def fix_name(name):
 
 
 def fix(ep_links):
-    invalid.sort()
     if len(invalid)==1:
-        print(colored(f"{invalid} Link is Broken, Trying To Fix...",'red'),end='\n')
+        print(colored(f"A link is Broken, Trying To Fix...",'red'),end='\n')
     else:
-        print(colored(f"{invalid} Links are Broken, Trying To Fix...",'red'),end='\n')
+        print(colored(f"{len(invalid)} Links are Broken, Trying To Fix...",'red'),end='\n')
     dict_threads={}
     tmp_links=[]
     if set_attr["max_threads"] > len(invalid)+1:
@@ -426,7 +435,7 @@ def fix(ep_links):
         else:
             set_attr["max_threads"]=len(invalid)+1
     for i in invalid:
-        tmp_links.append(ep_links[i])
+        tmp_links.append(i)
     for i in range(1,set_attr["max_threads"]):
         dict_threads[i]=cal(len(invalid),i)
     dict_threads=sorted(dict_threads.items(), key =lambda x:(x[1], x[0]))
@@ -440,14 +449,15 @@ def fix(ep_links):
 
 def get(driver):
     global episode_links
-    ep_count, title = find_count(driver)
-    title=fix_name(title)
-    #print(title)
+    ep_count, find = find_count(driver)
+    find=fix_name(find)
+    #print(find)
     ep_li = click_ep(driver)
     ep_count=len(ep_li)
+    #print(ep_li)
     ep_links=ep_li.copy()
     driver.quit()
-    print("Title :", title,flush=True)
+    print("Title :", find,flush=True)
     print("No. of Episodes :", ep_count,flush=True)
     #sys.stdout.flush()
     val=0
@@ -484,20 +494,21 @@ def get(driver):
 
     while len(invalid) > 0:
         fix(ep_links)
-    episode_links = sorted(episode_links.items(),key=lambda x:x[0])
+    episode_links = sorted(episode_links.items(),key=lambda x:float(re.findall(r'\d+',x[0])[0]))
 
-    file_path=f"./{title}.txt"
+    file_path=f"D:\\New folder\\Links\\Links\\{find}.txt"
 
-    with open(file_path, 'w+',encoding="utf-8") as file:
-        file.write(title + '\r\n')
+    with open(f"D:/New Folder/Links/Links/{find}.txt", 'w+',encoding="utf-8") as file:
+        file.write(find + '\r\n')
         for key,val in episode_links:
-            file.write(str(key)+'-'+str(val) + '\r\n')
+            file.write(str(key)+' - '+str(val) + '\r\n')
+    os.system("copy /Y "+file_path+" \"E:\\New folder\\Links\\Links/\" >NUL")
     if set_attr["speak"]==1:
         speak("Done")
     #clean()
-    print(colored('*'*32,'magenta'),flush=True,end=' ')
+    print(colored('*'*28,'magenta'),flush=True,end=' ')
     print("Total Time Taken :",round(time.time() - start,10), "Seconds",end=' ')
-    print(colored('*'*32,'magenta'),flush=True,end='\n\n')
+    print(colored('*'*28,'magenta'),flush=True,end='\n\n')
     '''if "auto" in sys.argv
         download_files()
     '''
@@ -506,7 +517,7 @@ def get(driver):
     if check_argv(["download"]):
         #time.sleep(2)
         #os.system("cls")
-        os.system(f"python open_links.py name=\"{str(title)}.txt\"")
+        os.system(f"python DNC.py name=\"{str(find)}.txt\"")
     #print("Data Need to Download :",down_size)
 
 
@@ -543,7 +554,7 @@ def main_block(title="",cho=0):
             else:
                 if cho==0:
                     choose=input("Select :")
-                    print(colored('*'*70,'blue'),flush=True)
+                    print(colored('*'*90,'blue'),flush=True)
                     try:
                         choose=choose.split(",")
                         if(len(choose) > 1):
