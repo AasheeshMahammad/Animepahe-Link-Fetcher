@@ -517,7 +517,7 @@ def get(driver):
     if check_argv(["download"]):
         #time.sleep(2)
         #os.system("cls")
-        os.system(f"python DNC.py name=\"{str(find)}.txt\"")
+        os.system(f"python open_links.py name=\"{str(find)}.txt\"")
     #print("Data Need to Download :",down_size)
 
 
